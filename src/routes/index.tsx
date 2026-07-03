@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Tv, Search, Settings as SettingsIcon, Loader2, X, PlayCircle } from "lucide-react";
-import { parseM3U, type Channel } from "@/lib/m3u";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { Tv, Search, Settings as SettingsIcon, Loader2, X, PlayCircle, SlidersHorizontal } from "lucide-react";
+import { normalizePlaylistUrl, parsePlaylist, type Channel } from "@/lib/m3u";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const DEFAULT_PLAYLIST = "https://iptv-org.github.io/iptv/raw/bd.m3u";
+const DEFAULT_PLAYLIST = "https://raw.githubusercontent.com/bugsfreeweb/LiveTVCollector/main/LiveTV/Bangladesh/LiveTV.json";
 const STORAGE_KEY = "iptv:playlist-url";
 
 export const Route = createFileRoute("/")({
@@ -29,12 +29,19 @@ function Index() {
   const [group, setGroup] = useState<string>("All");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [draftUrl, setDraftUrl] = useState("");
+  const [visibleCount, setVisibleCount] = useState(120);
+  const deferredQuery = useDeferredValue(query);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_PLAYLIST;
-    setPlaylistUrl(saved);
+    const normalized = normalizePlaylistUrl(saved);
+    setPlaylistUrl(normalized);
     setDraftUrl(saved);
   }, []);
+
+  useEffect(() => {
+    setVisibleCount(120);
+  }, [group, deferredQuery, channels.length]);
 
   useEffect(() => {
     if (!playlistUrl) return;
@@ -48,7 +55,7 @@ function Index() {
       })
       .then((text) => {
         if (cancelled) return;
-        const parsed = parseM3U(text);
+        const parsed = parsePlaylist(text);
         setChannels(parsed);
         setSelected(parsed[0] ?? null);
       })
@@ -66,19 +73,32 @@ function Index() {
   }, [channels]);
 
   const filtered = useMemo(() => {
-    const q = query.toLowerCase().trim();
+    const q = deferredQuery.toLowerCase().trim();
     return channels.filter((c) => {
       if (group !== "All" && c.group !== group) return false;
       if (q && !c.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [channels, query, group]);
+  }, [channels, deferredQuery, group]);
+
+  const visibleChannels = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+    const nearBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 140;
+    if (nearBottom && hasMore) {
+      setVisibleCount((count) => Math.min(count + 80, filtered.length));
+    }
+  };
 
   const savePlaylist = () => {
     const url = draftUrl.trim();
     if (!url) return;
-    localStorage.setItem(STORAGE_KEY, url);
-    setPlaylistUrl(url);
+    const normalized = normalizePlaylistUrl(url);
+    localStorage.setItem(STORAGE_KEY, normalized);
+    setDraftUrl(url);
+    setPlaylistUrl(normalized);
     setSettingsOpen(false);
   };
 
@@ -162,11 +182,36 @@ function Index() {
         </section>
 
         {/* Channel list */}
-        <aside className="rounded-2xl glass overflow-hidden flex flex-col max-h-[calc(100vh-7rem)] min-h-[400px]">
+        <aside className="flex min-h-[400px] max-h-[calc(100vh-7rem)] flex-col overflow-hidden rounded-2xl glass">
           <div className="border-b border-border p-3">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold">Channels</h3>
-              <span className="text-xs text-muted-foreground">{filtered.length}</span>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-semibold">Channel manager</h3>
+                <p className="text-xs text-muted-foreground">
+                  {channels.length} total • {filtered.length} shown
+                </p>
+              </div>
+              <div className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+                Smooth
+              </div>
+            </div>
+            <div className="mt-3 relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search channels…"
+                className="pl-9"
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <span>Quick filters</span>
+              </div>
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => { setQuery(""); setGroup("All"); }}>
+                Clear
+              </Button>
             </div>
             {groups.length > 1 && (
               <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
@@ -186,7 +231,7 @@ function Index() {
               </div>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-hidden">
             {loading && (
               <div className="grid place-items-center p-8 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin" />
@@ -198,41 +243,55 @@ function Index() {
             {!loading && !error && filtered.length === 0 && (
               <div className="p-4 text-sm text-muted-foreground">No channels found.</div>
             )}
-            <ul className="divide-y divide-border">
-              {filtered.map((c, i) => {
-                const active = selected?.url === c.url;
-                return (
-                  <li key={`${c.url}-${i}`}>
-                    <button
-                      onClick={() => setSelected(c)}
-                      className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 p-3 text-left transition-colors ${
-                        active ? "bg-primary/15" : "hover:bg-secondary/60"
-                      }`}
-                    >
-                      {c.logo ? (
-                        <img
-                          src={c.logo}
-                          alt=""
-                          loading="lazy"
-                          className="h-10 w-10 shrink-0 rounded-md bg-secondary object-contain p-0.5"
-                          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                        />
-                      ) : (
-                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-secondary">
-                          <Tv className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">{c.name}</div>
-                        {c.group && (
-                          <div className="truncate text-xs text-muted-foreground">{c.group}</div>
-                        )}
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            {!loading && !error && filtered.length > 0 && (
+              <div className="h-full overflow-y-auto px-2 py-1" onScroll={handleScroll}>
+                <div className="mb-2 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-xs text-muted-foreground">
+                  Showing {visibleChannels.length} of {filtered.length} channels. Scroll down to load more.
+                </div>
+                <ul className="space-y-2">
+                  {visibleChannels.map((channel, index) => {
+                    const active = selected?.url === channel.url;
+                    return (
+                      <li key={`${channel.url}-${index}`}>
+                        <button
+                          onClick={() => setSelected(channel)}
+                          className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-xl p-3 text-left transition-colors ${
+                            active ? "bg-primary/15 shadow-sm ring-1 ring-primary/20" : "hover:bg-secondary/70"
+                          }`}
+                        >
+                          {channel.logo ? (
+                            <img
+                              src={channel.logo}
+                              alt=""
+                              loading="lazy"
+                              className="h-10 w-10 shrink-0 rounded-md bg-secondary object-contain p-0.5"
+                              onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                            />
+                          ) : (
+                            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-secondary">
+                              <Tv className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-medium">{channel.name}</div>
+                            {channel.group && (
+                              <div className="truncate text-xs text-muted-foreground">{channel.group}</div>
+                            )}
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {hasMore && (
+                  <div className="mt-3 flex justify-center">
+                    <Button variant="ghost" size="sm" onClick={() => setVisibleCount((count) => Math.min(count + 80, filtered.length))}>
+                      Load more
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </aside>
       </main>
@@ -254,14 +313,14 @@ function Index() {
               </Button>
             </div>
             <div className="mt-4 space-y-2">
-              <label className="text-sm font-medium">Playlist URL (M3U)</label>
+              <label className="text-sm font-medium">Playlist URL</label>
               <Input
                 value={draftUrl}
                 onChange={(e) => setDraftUrl(e.target.value)}
-                placeholder="https://example.com/playlist.m3u"
+                placeholder="https://example.com/playlist.m3u or playlist.json"
               />
               <p className="text-xs text-muted-foreground">
-                Paste any public M3U/M3U8 playlist URL. It's saved locally in your browser.
+                Paste any public M3U/M3U8 playlist URL or a JSON channel feed. It&apos;s saved locally in your browser.
               </p>
             </div>
             <div className="mt-5 flex justify-end gap-2">
