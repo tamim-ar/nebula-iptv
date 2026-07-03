@@ -32,6 +32,7 @@ body {
   margin-bottom: 16px;
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.9));
   box-shadow: 0 28px 60px rgba(2, 8, 23, 0.42);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
 }
 
@@ -126,6 +127,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
   background: rgba(15, 23, 42, 0.78);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   box-shadow: 0 20px 40px rgba(2, 8, 23, 0.3);
 }
@@ -265,7 +267,6 @@ body {
 #channelList {
   max-height: min(560px, 70vh);
   overflow-y: auto;
-  scrollbar-width: thin;
   padding-right: 0.18rem;
 }
 

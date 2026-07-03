@@ -48,7 +48,7 @@
               <span>Now Streaming</span>
             </div>
             <div class="player-surface">
-              <video id="player" controls playsinline autoplay preload="metadata"></video>
+              <video id="player" controls autoplay preload="metadata"></video>
             </div>
           </div>
           <div class="player-footer">
@@ -68,8 +68,10 @@
           </div>
 
           <div class="filters">
+            <label class="visually-hidden" for="searchInput">Search channels</label>
             <input id="searchInput" type="text" class="form-control" placeholder="Search channels" />
-            <select id="groupFilter" class="form-select">
+            <label class="visually-hidden" for="groupFilter">Filter channels by group</label>
+            <select id="groupFilter" class="form-select" aria-label="Filter channels by group">
               <option value="all">All groups</option>
             </select>
           </div>
@@ -84,7 +86,7 @@
         <div class="modal-content bg-slate-900 text-slate-100 border-white/10">
           <div class="modal-header border-white/10">
             <h5 class="modal-title">Playlist source</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" title="Close"></button>
           </div>
           <div class="modal-body">
             <label class="form-label">Playlist URL</label>
