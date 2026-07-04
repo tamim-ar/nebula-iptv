@@ -9,61 +9,132 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="topbar">
-        <div class="brand-block">
-          <h1>Nebula IPTV</h1>
-        </div>
-
-        <div class="nav-controls" role="group" aria-label="Channel filters">
-          <select id="categoryDropdown" class="form-select form-select-sm" aria-label="Filter channels by category">
-            <option value="all">All categories</option>
-          </select>
-          <input id="searchInput" type="search" class="form-control form-control-sm nav-search" placeholder="Search channels" aria-label="Search channels" />
-        </div>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand-block" href="./" aria-label="Nebula IPTV home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false">
+              <path d="M6 5.5c0-2.2 2.4-3.5 4.3-2.3l16.2 10.5c1.8 1.1 1.8 3.7 0 4.8L10.3 29C8.4 30.2 6 28.9 6 26.7V5.5Z" />
+              <path d="M14.1 11.1 21.2 16l-7.1 4.9v-9.8Z" />
+            </svg>
+          </span>
+          <span class="brand-name">Nebula <span>IPTV</span></span>
+        </a>
 
         <div class="topbar-actions">
-          <button id="settingsBtn" type="button" class="btn btn-outline-light btn-sm px-3">Playlist settings</button>
-          <button id="reloadBtn" type="button" class="btn btn-primary btn-sm px-3">Reload</button>
+          <button id="reloadBtn" type="button" class="icon-button" aria-label="Reload playlist" title="Reload playlist">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M20 6v5h-5" />
+              <path d="M19 11a7 7 0 1 0-2.1 5" />
+            </svg>
+          </button>
+          <button id="settingsBtn" type="button" class="settings-trigger" aria-label="Open settings" title="Open settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+            </svg>
+          </button>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <main class="content-grid">
-        <section class="panel-card player-panel">
-          <div id="playerShell" class="player-frame">
-            <div class="player-surface">
-              <video id="player" controls autoplay preload="metadata"></video>
+    <main class="app-shell">
+      <section class="player-card" aria-label="Video player">
+        <div id="playerShell" class="player-frame">
+          <video id="player" autoplay playsinline preload="metadata"></video>
+          <div class="video-vignette" aria-hidden="true"></div>
+
+          <div class="player-caption">
+            <h1 id="currentChannel">Select a channel</h1>
+            <p id="currentChannelDetail">Open a channel to start watching.</p>
+          </div>
+
+          <div class="player-controls" aria-label="Player controls">
+            <div class="timeline" aria-hidden="true">
+              <span id="progressFill" class="timeline-fill"></span>
+              <span id="progressKnob" class="timeline-knob"></span>
+            </div>
+
+            <div class="control-row">
+              <div class="control-cluster">
+                <button id="playToggleBtn" type="button" class="control-icon play-toggle" aria-label="Play or pause">
+                  <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M8 5v14l11-7-11-7Z" />
+                  </svg>
+                  <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M7 5h4v14H7V5Zm6 0h4v14h-4V5Z" />
+                  </svg>
+                </button>
+                <button id="muteToggleBtn" type="button" class="control-icon mute-toggle" aria-label="Mute or unmute">
+                  <svg class="icon-volume" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 9v6h4l5 4V5L8 9H4Z" />
+                    <path d="M16 9.5a4 4 0 0 1 0 5" />
+                    <path d="M18.5 7a7 7 0 0 1 0 10" />
+                  </svg>
+                  <svg class="icon-muted" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 9v6h4l5 4V5L8 9H4Z" />
+                    <path d="m18 9-5 5" />
+                    <path d="m13 9 5 5" />
+                  </svg>
+                </button>
+                <input id="volumeRange" class="volume-range" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume" />
+              </div>
+
+              <div class="control-cluster">
+                <button id="fullscreenBtn" type="button" class="control-icon" aria-label="Fullscreen">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M8 3H3v5" />
+                    <path d="M16 3h5v5" />
+                    <path d="M8 21H3v-5" />
+                    <path d="M16 21h5v-5" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div class="selection-box">
-            <p class="footer-label">Current selection</p>
-            <strong id="currentChannel" class="footer-title">Select a channel</strong>
-            <div id="currentChannelDetail" class="selection-detail">Open a channel to start watching.</div>
-          </div>
-        </section>
+      <section class="browse-panel" aria-label="Browse channels">
+        <div class="search-row">
+          <label class="search-box" for="searchInput">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="m21 21-4.3-4.3" />
+              <circle cx="11" cy="11" r="7" />
+            </svg>
+            <input id="searchInput" type="search" placeholder="Search channels..." autocomplete="off" />
+          </label>
+        </div>
 
-        <aside class="panel-card channel-panel">
-          <div class="channel-panel-head">
-            <div class="channel-title-row">
-              <h2>Channels</h2>
-              <div id="channelMeta" class="channel-meta">Loading channels...</div>
-            </div>
+        <div class="filter-row">
+          <div id="categoryPicker" class="category-picker">
+            <span class="category-picker-label">Category</span>
+            <button id="categoryToggleBtn" class="category-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span id="selectedCategoryLabel">All categories</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <select id="categoryDropdown" class="category-native" aria-hidden="true" tabindex="-1">
+              <option value="all">All categories</option>
+            </select>
+            <div id="categoryMenu" class="category-menu" role="listbox" aria-label="Filter channels by category"></div>
           </div>
+          <div id="channelMeta" class="category-count">Loading channels...</div>
+        </div>
 
-          <div class="channel-list-wrap">
-            <div id="channelList" class="list-group" aria-live="polite"></div>
-          </div>
-        </aside>
-      </main>
-    </div>
+        <div class="channel-list-wrap">
+          <div id="channelList" class="channel-grid" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
 
     <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalTitle">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content settings-content">
           <div class="modal-header settings-modal-border">
             <h5 id="settingsModalTitle" class="modal-title">Playlist source</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" title="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" title="Close"></button>
           </div>
           <div class="modal-body">
             <label class="form-label" for="playlistUrlInput">Playlist URL</label>
@@ -71,7 +142,7 @@
             <div class="form-text settings-help">You can use an M3U/M3U8 URL or a JSON playlist feed.</div>
           </div>
           <div class="modal-footer settings-modal-border">
-            <button id="resetPlaylistBtn" type="button" class="btn btn-outline-light btn-sm">Reset</button>
+            <button id="resetPlaylistBtn" type="button" class="btn btn-outline-secondary btn-sm">Reset</button>
             <button id="savePlaylistBtn" type="button" class="btn btn-primary btn-sm">Save and load</button>
           </div>
         </div>
