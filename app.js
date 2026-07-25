@@ -19,7 +19,7 @@ const playlistUrlInputEl = document.getElementById('playlistUrlInput');
 const settingsModalEl = document.getElementById('settingsModal');
 const playToggleBtn = document.getElementById('playToggleBtn');
 const muteToggleBtn = document.getElementById('muteToggleBtn');
-const volumeRangeEl = document.getElementById('volumeRange');
+const timeDisplayEl = document.getElementById('timeDisplay');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const progressFillEl = document.getElementById('progressFill');
 const progressKnobEl = document.getElementById('progressKnob');
@@ -33,7 +33,6 @@ let activeGroup = 'all';
 let loadToken = 0;
 let renderToken = 0;
 let imageObserver = null;
-let lastNonZeroVolume = 1;
 
 function normalizeUrl(url) {
   const value = (url || '').trim();
@@ -335,34 +334,27 @@ function updatePlayButton() {
   playToggleBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
 }
 
-function triggerVolumePulse() {
-  if (!muteToggleBtn) return;
-  muteToggleBtn.classList.remove('volume-pulse');
-  void muteToggleBtn.offsetWidth;
-  muteToggleBtn.classList.add('volume-pulse');
+function formatTime(value) {
+  if (!Number.isFinite(value) || value < 0) return '00:00';
+  const safeValue = Math.floor(value);
+  const minutes = Math.floor(safeValue / 60);
+  const seconds = safeValue % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-function updateVolumeUI(animate = false) {
-  const isMuted = player.muted || player.volume === 0;
-  const visibleVolume = isMuted ? 0 : player.volume;
-  const volumePercent = `${Math.round(visibleVolume * 100)}%`;
+function updateMuteButton() {
+  if (!muteToggleBtn) return;
+  const isMuted = player.muted;
+  muteToggleBtn.classList.toggle('is-muted', isMuted);
+  muteToggleBtn.setAttribute('aria-label', isMuted ? 'Unmute' : 'Mute');
+  muteToggleBtn.title = isMuted ? 'Unmute' : 'Mute';
+}
 
-  if (muteToggleBtn) {
-    muteToggleBtn.classList.toggle('is-muted', isMuted);
-    muteToggleBtn.setAttribute('aria-label', isMuted ? 'Unmute' : 'Mute');
-    muteToggleBtn.title = isMuted ? 'Unmute' : 'Mute';
-  }
-
-  if (volumeRangeEl) {
-    volumeRangeEl.value = String(visibleVolume);
-    volumeRangeEl.style.setProperty('--volume-percent', volumePercent);
-    volumeRangeEl.classList.toggle('is-muted', isMuted);
-    volumeRangeEl.setAttribute('aria-valuetext', isMuted ? 'Muted' : `${volumePercent} volume`);
-  }
-
-  if (animate) {
-    triggerVolumePulse();
-  }
+function updateTimeDisplay() {
+  if (!timeDisplayEl) return;
+  const current = Number.isFinite(player.currentTime) ? player.currentTime : 0;
+  const duration = Number.isFinite(player.duration) && player.duration > 0 ? player.duration : 0;
+  timeDisplayEl.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
 }
 
 function updateProgress() {
@@ -404,6 +396,7 @@ function playChannel(url) {
 
   updateProgress();
   updatePlayButton();
+  updateTimeDisplay();
 }
 
 function setupImageObserver() {
@@ -573,10 +566,6 @@ function initializePlayerControls() {
   player.controls = false;
   player.volume = 1;
   player.muted = false;
-  lastNonZeroVolume = 1;
-  if (volumeRangeEl) {
-    volumeRangeEl.value = '1';
-  }
 
   playToggleBtn?.addEventListener('click', () => {
     if (player.paused || player.ended) {
@@ -588,24 +577,8 @@ function initializePlayerControls() {
   });
 
   muteToggleBtn?.addEventListener('click', () => {
-    if (player.muted || player.volume === 0) {
-      player.volume = lastNonZeroVolume || 1;
-      player.muted = false;
-    } else {
-      lastNonZeroVolume = player.volume || lastNonZeroVolume;
-      player.muted = true;
-    }
-    updateVolumeUI(true);
-  });
-
-  volumeRangeEl?.addEventListener('input', (event) => {
-    const nextVolume = Number(event.target.value);
-    player.volume = nextVolume;
-    player.muted = nextVolume === 0;
-    if (nextVolume > 0) {
-      lastNonZeroVolume = nextVolume;
-    }
-    updateVolumeUI(true);
+    player.muted = !player.muted;
+    updateMuteButton();
   });
 
   fullscreenBtn?.addEventListener('click', () => {
@@ -617,15 +590,36 @@ function initializePlayerControls() {
     }
   });
 
-  player.addEventListener('play', updatePlayButton);
-  player.addEventListener('pause', updatePlayButton);
-  player.addEventListener('ended', updatePlayButton);
-  player.addEventListener('volumechange', () => updateVolumeUI());
-  player.addEventListener('timeupdate', updateProgress);
-  player.addEventListener('loadedmetadata', updateProgress);
+  player.addEventListener('play', () => {
+    updatePlayButton();
+    updateTimeDisplay();
+  });
+  player.addEventListener('pause', () => {
+    updatePlayButton();
+    updateTimeDisplay();
+  });
+  player.addEventListener('ended', () => {
+    updatePlayButton();
+    updateTimeDisplay();
+  });
+  player.addEventListener('volumechange', updateMuteButton);
+  player.addEventListener('timeupdate', () => {
+    updateProgress();
+    updateTimeDisplay();
+  });
+  player.addEventListener('loadedmetadata', () => {
+    updateProgress();
+    updateTimeDisplay();
+  });
+  player.addEventListener('durationchange', updateTimeDisplay);
+  player.addEventListener('seeked', () => {
+    updateProgress();
+    updateTimeDisplay();
+  });
   updatePlayButton();
-  updateVolumeUI();
+  updateMuteButton();
   updateProgress();
+  updateTimeDisplay();
 }
 
 function initialize() {

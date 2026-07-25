@@ -174,12 +174,13 @@ svg {
 }
 
 .app-shell {
-  width: min(100% - 64px, 1220px);
+  width: min(100% - 64px, 1400px);
   margin: 0 auto;
   padding: 34px 0 48px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+  align-items: start;
+  gap: 24px;
 }
 
 .player-card {
@@ -189,7 +190,7 @@ svg {
 .player-frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 7.55;
+  aspect-ratio: 16 / 9;
   min-height: 360px;
   overflow: hidden;
   border-radius: 14px;
@@ -297,8 +298,8 @@ svg {
 
 .control-icon {
   appearance: none;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -343,65 +344,19 @@ svg {
   animation: volumePulse 0.28s ease-out;
 }
 
-.volume-range {
-  --volume-percent: 100%;
-  appearance: none;
-  width: 145px;
-  height: 5px;
+.time-display {
+  min-width: 112px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--purple) var(--volume-percent), rgba(255, 255, 255, 0.25) var(--volume-percent));
-  cursor: pointer;
-  transition: filter 0.18s ease, opacity 0.18s ease;
-}
-
-.volume-range.is-muted {
-  opacity: 0.72;
-  filter: grayscale(0.25);
-}
-
-.volume-range::-webkit-slider-runnable-track {
-  height: 5px;
-  border-radius: 999px;
-  background: transparent;
-}
-
-.volume-range::-webkit-slider-thumb {
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  margin-top: -4.5px;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  background: var(--purple);
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.16);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.volume-range:hover::-webkit-slider-thumb,
-.volume-range:focus-visible::-webkit-slider-thumb {
-  transform: scale(1.08);
-  box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.18);
-}
-
-.volume-range::-moz-range-track {
-  height: 5px;
-  border-radius: 999px;
-  background: transparent;
-}
-
-.volume-range::-moz-range-progress {
-  height: 5px;
-  border-radius: 999px;
-  background: var(--purple);
-}
-
-.volume-range::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  background: var(--purple);
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.16);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 @keyframes volumePulse {
@@ -420,6 +375,11 @@ svg {
 }
 
 .browse-panel {
+  position: sticky;
+  top: 110px;
+  max-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--browse-bg);
@@ -652,25 +612,28 @@ svg {
 }
 
 .channel-list-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 16px 18px 28px;
   border-radius: 14px;
   background: var(--surface);
+  overflow-y: auto;
 }
 
 .channel-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px 16px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .channel-item {
   appearance: none;
   min-width: 0;
-  min-height: 104px;
-  padding: 16px;
+  min-height: 86px;
+  padding: 12px 14px;
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
   border: 1px solid var(--border);
   border-radius: 13px;
@@ -700,8 +663,8 @@ svg {
 }
 
 .thumb {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -712,23 +675,23 @@ svg {
 
 .thumb img {
   display: block;
-  max-width: 64px;
-  max-height: 64px;
+  max-width: 48px;
+  max-height: 48px;
   width: auto;
   height: auto;
   object-fit: contain;
 }
 
 .thumb-fallback {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
   background: var(--purple-soft);
   color: var(--purple);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 900;
 }
 
@@ -739,26 +702,24 @@ svg {
 .channel-item .label {
   display: block;
   width: 100%;
-  margin: 0 0 5px;
+  margin: 0 0 4px;
   color: var(--text);
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   font-weight: 800;
   line-height: 1.25;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .channel-group {
   display: block;
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .list-message {
@@ -796,6 +757,120 @@ svg {
 .playlist-input:focus {
   border-color: #c9b9ff;
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+}
+
+@media (max-width: 1080px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .browse-panel {
+    position: static;
+    max-height: none;
+  }
+
+  .channel-list-wrap {
+    overflow-y: visible;
+  }
+
+  .player-frame {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 780px) {
+  .app-shell {
+    width: min(100% - 24px, 1400px);
+    padding-top: 20px;
+    gap: 18px;
+  }
+
+  .topbar-inner {
+    width: min(100% - 24px, 1220px);
+    min-height: 74px;
+  }
+
+  .player-frame {
+    min-height: 280px;
+    aspect-ratio: 16 / 10;
+  }
+
+  .player-caption {
+    left: 18px;
+    right: 18px;
+    bottom: 88px;
+    max-width: none;
+  }
+
+  .player-controls {
+    left: 18px;
+    right: 18px;
+    bottom: 16px;
+  }
+
+  .control-row {
+    gap: 12px;
+  }
+
+  .control-cluster {
+    gap: 10px;
+  }
+
+  .time-display {
+    min-width: 96px;
+    padding: 0 8px;
+    font-size: 0.82rem;
+  }
+
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .category-count {
+    justify-content: flex-start;
+  }
+
+  .channel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .player-frame {
+    min-height: 240px;
+    aspect-ratio: 16 / 11;
+  }
+
+  .player-caption h1 {
+    font-size: 1.15rem;
+  }
+
+  .player-caption p {
+    font-size: 0.92rem;
+  }
+
+  .control-row {
+    flex-wrap: wrap;
+  }
+
+  .channel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .channel-item {
+    min-height: 92px;
+    padding: 12px;
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .thumb {
+    width: 52px;
+    height: 52px;
+  }
 }
 
 .settings-help {
