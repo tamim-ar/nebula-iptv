@@ -64,6 +64,17 @@ function firstString(source, keys) {
   return null;
 }
 
+function isLikelyLiveTvUrl(url) {
+  const value = (url || '').trim();
+  if (!value) return false;
+
+  const lower = value.toLowerCase();
+  const knownVideoExtensions = /\.(mp4|mkv|avi|mov|wmv|webm|flv|mpeg|mpg|3gp|m4v)(\?.*)?$/i;
+  if (knownVideoExtensions.test(lower)) return false;
+
+  return /\.m3u8?(\?.*)?$/i.test(lower) || /(?:^|[/?&])(hls|playlist)(?:[/?&]|$)/i.test(lower);
+}
+
 function parseChannels(text) {
   return new Promise((resolve) => {
     const trimmed = text.trim();
@@ -97,7 +108,7 @@ function parseChannels(text) {
             const url = firstString(value, ['url', 'link', 'stream', 'stream_url', 'streamUrl', 'm3u8']);
             const logo = firstString(value, ['logo', 'tvg-logo', 'tvgLogo', 'logo_url', 'logoUrl', 'image']);
 
-            if (name && url) {
+            if (name && url && isLikelyLiveTvUrl(url)) {
               items.push({ name, url: normalizeUrl(url), logo, group });
               continue;
             }
@@ -156,7 +167,9 @@ function parseChannels(text) {
         };
       } else if (!line.startsWith('#') && current) {
         current.url = normalizeUrl(line);
-        parsed.push(current);
+        if (isLikelyLiveTvUrl(current.url)) {
+          parsed.push(current);
+        }
         current = null;
       }
     }
@@ -521,7 +534,7 @@ async function loadPlaylist(url) {
     const parsed = await parseChannels(text);
     if (token !== loadToken) return;
 
-    channels = parsed.filter((channel) => channel.name && channel.url);
+    channels = parsed.filter((channel) => channel.name && channel.url && isLikelyLiveTvUrl(channel.url));
     const groups = buildGroups();
     if (!groups.includes(activeGroup)) activeGroup = 'all';
 
