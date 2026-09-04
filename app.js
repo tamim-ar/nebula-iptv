@@ -2,8 +2,10 @@ const DEFAULT_PLAYLIST = 'https://raw.githubusercontent.com/bugsfreeweb/LiveTVCo
 const STORAGE_KEY = 'nebula-static-playlist';
 const RENDER_BATCH_SIZE = 24;
 const PREFERRED_GROUP_ORDER = ['News', 'Sports', 'Movies', 'Kids', 'Religious', 'Music', 'Documentary'];
+const PLAYER_CHROME_HIDE_DELAY = 1000;
 
 const player = document.getElementById('player');
+const playerShell = document.getElementById('playerShell');
 const currentChannelEl = document.getElementById('currentChannel');
 const currentChannelDetailEl = document.getElementById('currentChannelDetail');
 const channelListEl = document.getElementById('channelList');
@@ -33,6 +35,9 @@ let activeGroup = 'all';
 let loadToken = 0;
 let renderToken = 0;
 let imageObserver = null;
+let playerChromeHideTimer = null;
+let lastInteractionWasKeyboard = false;
+let hasKeyboardFocusInPlayer = false;
 
 function normalizeUrl(url) {
   const value = (url || '').trim();
@@ -370,6 +375,46 @@ function updateProgress() {
   progressKnobEl.style.left = percent;
 }
 
+function clearPlayerChromeHideTimer() {
+  if (!playerChromeHideTimer) return;
+  window.clearTimeout(playerChromeHideTimer);
+  playerChromeHideTimer = null;
+}
+
+function canHidePlayerChrome() {
+  return Boolean(playerShell && !player.paused && !player.ended && !hasKeyboardFocusInPlayer);
+}
+
+function setPlayerChromeIdle(isIdle) {
+  if (!playerShell) return;
+  playerShell.classList.toggle('is-idle', isIdle);
+}
+
+function hidePlayerChrome() {
+  playerChromeHideTimer = null;
+  setPlayerChromeIdle(canHidePlayerChrome());
+}
+
+function schedulePlayerChromeHide() {
+  clearPlayerChromeHideTimer();
+
+  if (!canHidePlayerChrome()) {
+    setPlayerChromeIdle(false);
+    return;
+  }
+
+  playerChromeHideTimer = window.setTimeout(hidePlayerChrome, PLAYER_CHROME_HIDE_DELAY);
+}
+
+function revealPlayerChrome(shouldStayVisible = false) {
+  setPlayerChromeIdle(false);
+  clearPlayerChromeHideTimer();
+
+  if (!shouldStayVisible) {
+    schedulePlayerChromeHide();
+  }
+}
+
 function playChannel(url) {
   if (!url) return;
 
@@ -397,6 +442,7 @@ function playChannel(url) {
   updateProgress();
   updatePlayButton();
   updateTimeDisplay();
+  revealPlayerChrome();
 }
 
 function setupImageObserver() {
@@ -567,7 +613,42 @@ function initializePlayerControls() {
   player.volume = 1;
   player.muted = false;
 
-  playToggleBtn?.addEventListener('click', () => {
+  document.addEventListener('keydown', () => {
+    lastInteractionWasKeyboard = true;
+  });
+
+  document.addEventListener('pointerdown', () => {
+    lastInteractionWasKeyboard = false;
+  }, true);
+
+  const revealAndSchedulePlayerChrome = () => revealPlayerChrome();
+
+  playerShell?.addEventListener('pointerenter', revealAndSchedulePlayerChrome);
+  playerShell?.addEventListener('pointerdown', revealAndSchedulePlayerChrome);
+  playerShell?.addEventListener('pointermove', revealAndSchedulePlayerChrome);
+  playerShell?.addEventListener('click', revealAndSchedulePlayerChrome);
+  playerShell?.addEventListener('pointerleave', schedulePlayerChromeHide);
+  playerShell?.addEventListener('touchstart', revealAndSchedulePlayerChrome, { passive: true });
+  playerShell?.addEventListener('touchmove', revealAndSchedulePlayerChrome, { passive: true });
+  playerShell?.addEventListener('focusin', () => {
+    hasKeyboardFocusInPlayer = lastInteractionWasKeyboard;
+    revealPlayerChrome(hasKeyboardFocusInPlayer);
+  });
+  playerShell?.addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (!playerShell.contains(document.activeElement)) {
+        hasKeyboardFocusInPlayer = false;
+        schedulePlayerChromeHide();
+      }
+    }, 0);
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    revealPlayerChrome(!canHidePlayerChrome());
+  });
+
+  playToggleBtn?.addEventListener('click', (event) => {
+    if (event.detail > 0) event.currentTarget.blur();
     if (player.paused || player.ended) {
       player.play().catch(() => {});
     } else {
@@ -576,13 +657,15 @@ function initializePlayerControls() {
     updatePlayButton();
   });
 
-  muteToggleBtn?.addEventListener('click', () => {
+  muteToggleBtn?.addEventListener('click', (event) => {
+    if (event.detail > 0) event.currentTarget.blur();
     player.muted = !player.muted;
     updateMuteButton();
   });
 
-  fullscreenBtn?.addEventListener('click', () => {
-    const target = document.getElementById('playerShell') || player;
+  fullscreenBtn?.addEventListener('click', (event) => {
+    if (event.detail > 0) event.currentTarget.blur();
+    const target = playerShell || player;
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     } else if (target.requestFullscreen) {
@@ -593,14 +676,17 @@ function initializePlayerControls() {
   player.addEventListener('play', () => {
     updatePlayButton();
     updateTimeDisplay();
+    revealPlayerChrome();
   });
   player.addEventListener('pause', () => {
     updatePlayButton();
     updateTimeDisplay();
+    revealPlayerChrome(true);
   });
   player.addEventListener('ended', () => {
     updatePlayButton();
     updateTimeDisplay();
+    revealPlayerChrome(true);
   });
   player.addEventListener('volumechange', updateMuteButton);
   player.addEventListener('timeupdate', () => {

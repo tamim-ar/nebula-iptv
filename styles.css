@@ -194,6 +194,7 @@ svg {
   min-height: 360px;
   overflow: hidden;
   border-radius: 14px;
+  cursor: default;
   background:
     linear-gradient(135deg, #23321f 0%, #1a2224 58%, #080a0c 100%);
   box-shadow: var(--shadow-soft);
@@ -218,6 +219,7 @@ svg {
   background:
     linear-gradient(180deg, rgba(6, 9, 13, 0.1) 0%, rgba(6, 9, 13, 0) 30%, rgba(6, 9, 13, 0.74) 100%),
     linear-gradient(90deg, rgba(6, 9, 13, 0.42) 0%, rgba(6, 9, 13, 0) 48%, rgba(6, 9, 13, 0.16) 100%);
+  transition: opacity 0.24s ease;
 }
 
 .player-caption {
@@ -228,6 +230,7 @@ svg {
   max-width: min(560px, calc(100% - 300px));
   color: #ffffff;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.34);
+  transition: opacity 0.24s ease, transform 0.24s ease;
 }
 
 .player-caption h1 {
@@ -253,6 +256,28 @@ svg {
   bottom: 22px;
   z-index: 5;
   color: #ffffff;
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.player-frame.is-idle .video-vignette,
+.player-frame.is-idle .player-caption,
+.player-frame.is-idle .player-controls {
+  opacity: 0;
+}
+
+.player-frame.is-idle .player-caption,
+.player-frame.is-idle .player-controls {
+  transform: translateY(8px);
+}
+
+.player-frame.is-idle .player-controls {
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .player-frame.is-idle {
+    cursor: none;
+  }
 }
 
 .timeline {
