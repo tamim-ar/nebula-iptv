@@ -1,6 +1,8 @@
 const DEFAULT_PLAYLIST = 'https://raw.githubusercontent.com/bugsfreeweb/LiveTVCollector/main/LiveTV/Bangladesh/LiveTV.json';
 const STORAGE_KEY = 'nebula-static-playlist';
+const FAVORITES_STORAGE_KEY = 'nebula-favorite-channels';
 const RENDER_BATCH_SIZE = 24;
+const FAVORITES_GROUP = 'favorites';
 const PREFERRED_GROUP_ORDER = ['News', 'Sports', 'Movies', 'Kids', 'Religious', 'Music', 'Documentary'];
 const PLAYER_CHROME_HIDE_DELAY = 1000;
 
@@ -32,12 +34,50 @@ let selectedChannel = null;
 let hls = null;
 let activeQuery = '';
 let activeGroup = 'all';
+let favoriteUrls = loadFavoriteUrls();
 let loadToken = 0;
 let renderToken = 0;
 let imageObserver = null;
 let playerChromeHideTimer = null;
 let lastInteractionWasKeyboard = false;
 let hasKeyboardFocusInPlayer = false;
+
+function loadFavoriteUrls() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || '[]');
+    return new Set(Array.isArray(saved) ? saved.filter((url) => typeof url === 'string' && url) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveFavoriteUrls() {
+  localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(favoriteUrls)));
+}
+
+function isFavorite(channel) {
+  return favoriteUrls.has(channel.url);
+}
+
+function toggleFavorite(channel) {
+  if (isFavorite(channel)) {
+    favoriteUrls.delete(channel.url);
+  } else {
+    favoriteUrls.add(channel.url);
+  }
+
+  saveFavoriteUrls();
+  renderChannels();
+}
+
+function pruneFavorites() {
+  const availableUrls = new Set(channels.map((channel) => channel.url));
+  const retained = new Set(Array.from(favoriteUrls).filter((url) => availableUrls.has(url)));
+  if (retained.size === favoriteUrls.size) return;
+
+  favoriteUrls = retained;
+  saveFavoriteUrls();
+}
 
 function normalizeUrl(url) {
   const value = (url || '').trim();
@@ -187,7 +227,8 @@ function getFilteredChannels() {
   return channels.filter((channel) => {
     const haystack = `${channel.name || ''} ${channel.group || ''}`.toLowerCase();
     const matchesQuery = !q || haystack.includes(q);
-    const matchesGroup = activeGroup === 'all' || channel.group === activeGroup;
+    const matchesGroup = activeGroup === 'all'
+      || (activeGroup === FAVORITES_GROUP ? isFavorite(channel) : channel.group === activeGroup);
     return matchesQuery && matchesGroup;
   });
 }
@@ -215,7 +256,11 @@ function createFallbackThumb() {
 
 function createChannelItem(channel) {
   const isActive = selectedChannel && selectedChannel.url === channel.url;
+  const favorite = isFavorite(channel);
   const group = channel.group || 'General';
+  const entry = document.createElement('div');
+  entry.className = 'channel-entry';
+
   const item = document.createElement('button');
   item.type = 'button';
   item.className = `channel-item${isActive ? ' active' : ''}`;
@@ -263,7 +308,19 @@ function createChannelItem(channel) {
 
   item.appendChild(thumb);
   item.appendChild(copy);
-  return item;
+
+  const favoriteBtn = document.createElement('button');
+  favoriteBtn.type = 'button';
+  favoriteBtn.className = `favorite-button${favorite ? ' is-favorite' : ''}`;
+  favoriteBtn.dataset.favoriteUrl = channel.url;
+  favoriteBtn.setAttribute('aria-label', favorite ? `Remove ${channel.name} from favorites` : `Add ${channel.name} to favorites`);
+  favoriteBtn.setAttribute('aria-pressed', favorite ? 'true' : 'false');
+  favoriteBtn.title = favorite ? 'Remove from favorites' : 'Add to favorites';
+  favoriteBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z" /></svg>';
+
+  entry.appendChild(item);
+  entry.appendChild(favoriteBtn);
+  return entry;
 }
 
 function renderChannels() {
@@ -274,7 +331,8 @@ function renderChannels() {
 
     const filtered = getFilteredChannels();
     const total = filtered.length;
-    setChannelMeta(activeGroup === 'all' ? 'All' : activeGroup, total);
+    const filterLabel = activeGroup === FAVORITES_GROUP ? 'Favorites' : (activeGroup === 'all' ? 'All' : activeGroup);
+  setChannelMeta(filterLabel, total);
 
     if (!total) {
       showListMessage('No channels found.');
@@ -480,7 +538,7 @@ function compareGroups(a, b) {
 
 function buildGroups() {
   const groupSet = new Set(channels.map((channel) => channel.group).filter(Boolean));
-  return ['all', ...Array.from(groupSet).sort(compareGroups)];
+  return [FAVORITES_GROUP, 'all', ...Array.from(groupSet).sort(compareGroups)];
 }
 
 function populateGroupOptions(select, groups, allLabel) {
@@ -490,7 +548,7 @@ function populateGroupOptions(select, groups, allLabel) {
   for (const group of groups) {
     const option = document.createElement('option');
     option.value = group;
-    option.textContent = group === 'all' ? allLabel : group;
+    option.textContent = categoryLabel(group, allLabel);
     fragment.appendChild(option);
   }
 
@@ -498,8 +556,9 @@ function populateGroupOptions(select, groups, allLabel) {
   select.value = groups.includes(activeGroup) ? activeGroup : 'all';
 }
 
-function categoryLabel(group) {
-  return group === 'all' ? 'All categories' : group;
+function categoryLabel(group, allLabel = 'All categories') {
+  if (group === FAVORITES_GROUP) return 'Favorites';
+  return group === 'all' ? allLabel : group;
 }
 
 function closeCategoryMenu() {
@@ -574,6 +633,7 @@ async function loadPlaylist(url) {
     if (token !== loadToken) return;
 
     channels = parsed.filter((channel) => channel.name && channel.url && isLikelyLiveTvUrl(channel.url));
+    pruneFavorites();
     const groups = buildGroups();
     if (!groups.includes(activeGroup)) activeGroup = 'all';
 
@@ -754,6 +814,14 @@ document.addEventListener('keydown', (event) => {
 });
 
 channelListEl.addEventListener('click', (event) => {
+  const favoriteButton = event.target.closest('[data-favorite-url]');
+  if (favoriteButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    const channel = channels.find((entry) => entry.url === favoriteButton.dataset.favoriteUrl);
+    if (channel) toggleFavorite(channel);
+    return;
+  }
   const el = event.target.closest('[data-url]');
   if (!el) return;
 

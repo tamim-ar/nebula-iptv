@@ -7,6 +7,7 @@ Nebula IPTV is a lightweight browser-based IPTV player built for static hosting 
 - Responsive dark UI
 - HLS playback support with HLS.js
 - Search and category filtering
+- Favorite channels persisted in browser local storage, with stale favorites removed when playlists change
 - Channel grid selection
 - Built-in controls: play/pause, mute, fullscreen, progress/time display
 - Playlist source settings modal
@@ -83,7 +84,7 @@ https://example.com/stream/one.m3u8
 
 ## Configuration
 
-The selected playlist URL is saved in local storage under the key `nebula-static-playlist`.
+The selected playlist URL is saved in local storage under the key `nebula-static-playlist`. Favorite stream URLs are saved under `nebula-favorite-channels`; entries no longer present in the loaded playlist are removed automatically.
 
 To change the default playlist, edit the `DEFAULT_PLAYLIST` constant in `app.js`.
 
