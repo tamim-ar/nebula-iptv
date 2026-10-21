@@ -38,12 +38,6 @@
             <path d="M19 11a7 7 0 1 0-2.1 5" />
           </svg>
         </button>
-        <button id="settingsBtn" type="button" class="btn-icon" aria-label="Open settings" title="Playlist Settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
-          </svg>
-        </button>
       </div>
     </header>
 
@@ -201,43 +195,13 @@
         <div class="channel-list-container">
           <div id="channelList" class="channel-list-grid" role="list" aria-live="polite"></div>
         </div>
+
+        <!-- Footer / Credits -->
+        <footer class="sidebar-footer">
+          <span>TV streams powered by <a href="https://github.com/bugsfreeweb/LiveTVCollector" target="_blank" rel="noopener noreferrer" class="credit-link">bugsfreeweb/LiveTVCollector</a></span>
+        </footer>
       </aside>
     </main>
-
-    <!-- Settings Modal (Pure CSS overlay, zero Bootstrap dependency) -->
-    <div id="settingsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
-      <div class="modal-dialog">
-        <div class="modal-header">
-          <div class="modal-header-title">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-              <path d="M6 6h10" />
-              <path d="M6 10h10" />
-            </svg>
-            <h2 id="settingsModalTitle">Playlist Source</h2>
-          </div>
-          <button id="closeSettingsBtn" type="button" class="btn-close-modal" aria-label="Close settings">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="modal-body">
-          <label for="playlistUrlInput" class="form-field-label">Custom M3U / JSON Playlist URL</label>
-          <div class="input-with-action">
-            <input id="playlistUrlInput" type="url" class="modal-input" placeholder="https://example.com/playlist.m3u" spellcheck="false" />
-          </div>
-          <p class="modal-hint">Supports M3U, M3U8, or JSON IPTV feeds with auto-detection.</p>
-        </div>
-
-        <div class="modal-footer">
-          <button id="resetPlaylistBtn" type="button" class="btn-modal btn-modal-secondary">Reset Default</button>
-          <button id="savePlaylistBtn" type="button" class="btn-modal btn-modal-primary">Save & Load</button>
-        </div>
-      </div>
-    </div>
 
     <!-- HLS.js for instant, lightweight stream handling -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>

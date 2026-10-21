@@ -7,7 +7,6 @@
 
   // Constants & Storage Keys
   const DEFAULT_PLAYLIST = 'https://raw.githubusercontent.com/bugsfreeweb/LiveTVCollector/main/LiveTV/Bangladesh/LiveTV.json';
-  const STORAGE_KEY = 'nebula-static-playlist';
   const FAVORITES_STORAGE_KEY = 'nebula-favorite-channels';
   const FAVORITES_GROUP = 'favorites';
   const PREFERRED_GROUPS = ['News', 'Sports', 'Entertainment', 'Movies', 'Kids', 'Music', 'Religious', 'Documentary'];
@@ -44,14 +43,8 @@
   const selectedCategoryLabel = document.getElementById('selectedCategoryLabel');
   const categoryMenu = document.getElementById('categoryMenu');
 
-  // Topbar & Modal DOM
+  // Topbar DOM
   const reloadBtn = document.getElementById('reloadBtn');
-  const settingsBtn = document.getElementById('settingsBtn');
-  const settingsModal = document.getElementById('settingsModal');
-  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-  const playlistUrlInput = document.getElementById('playlistUrlInput');
-  const resetPlaylistBtn = document.getElementById('resetPlaylistBtn');
-  const savePlaylistBtn = document.getElementById('savePlaylistBtn');
 
   // State
   let channels = [];
@@ -893,42 +886,6 @@
 
     // Topbar Reload
     reloadBtn?.addEventListener('click', () => {
-      const saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_PLAYLIST;
-      loadPlaylist(saved);
-    });
-
-    // Settings Modal
-    function openModal() {
-      if (settingsModal) {
-        playlistUrlInput.value = localStorage.getItem(STORAGE_KEY) || DEFAULT_PLAYLIST;
-        settingsModal.classList.add('is-open');
-        setTimeout(() => playlistUrlInput?.focus(), 50);
-      }
-    }
-
-    function closeModal() {
-      if (settingsModal) {
-        settingsModal.classList.remove('is-open');
-      }
-    }
-
-    settingsBtn?.addEventListener('click', openModal);
-    closeSettingsBtn?.addEventListener('click', closeModal);
-    settingsModal?.addEventListener('click', (e) => {
-      if (e.target === settingsModal) closeModal();
-    });
-
-    savePlaylistBtn?.addEventListener('click', () => {
-      const inputUrl = normalizeUrl(playlistUrlInput.value) || DEFAULT_PLAYLIST;
-      localStorage.setItem(STORAGE_KEY, inputUrl);
-      closeModal();
-      loadPlaylist(inputUrl);
-    });
-
-    resetPlaylistBtn?.addEventListener('click', () => {
-      playlistUrlInput.value = DEFAULT_PLAYLIST;
-      localStorage.setItem(STORAGE_KEY, DEFAULT_PLAYLIST);
-      closeModal();
       loadPlaylist(DEFAULT_PLAYLIST);
     });
 
@@ -937,7 +894,6 @@
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       if (e.key === 'Escape') {
-        closeModal();
         toggleCategoryDropdown(false);
       } else if (e.key === ' ' || e.key === 'k') {
         e.preventDefault();
@@ -967,8 +923,7 @@
   // ---------------------------------------------------------------------------
   function init() {
     attachEventListeners();
-    const savedUrl = localStorage.getItem(STORAGE_KEY) || DEFAULT_PLAYLIST;
-    loadPlaylist(savedUrl);
+    loadPlaylist(DEFAULT_PLAYLIST);
   }
 
   init();
