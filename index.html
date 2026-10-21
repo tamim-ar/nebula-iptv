@@ -170,10 +170,10 @@
           </div>
         </div>
 
-        <!-- Filter Row: Category Dropdown & Channel Counter -->
+        <!-- Filter Row: Category & Sort Dropdowns -->
         <div class="sidebar-filter-area">
           <div id="categoryPicker" class="category-dropdown-container">
-            <button id="categoryToggleBtn" type="button" class="category-toggle-btn" aria-haspopup="listbox" aria-expanded="false">
+            <button id="categoryToggleBtn" type="button" class="category-toggle-btn" aria-haspopup="listbox" aria-expanded="false" title="Filter by category">
               <svg class="cat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <rect x="2" y="7" width="20" height="15" rx="2" />
                 <polyline points="17 2 12 7 7 2" />
@@ -184,10 +184,42 @@
               </svg>
             </button>
 
-            <!-- Dropdown Menu -->
+            <!-- Category Dropdown Menu -->
             <div id="categoryMenu" class="category-menu-panel" role="listbox" aria-label="Categories"></div>
           </div>
 
+          <!-- Sort Dropdown -->
+          <div id="sortPicker" class="sort-dropdown-container">
+            <button id="sortToggleBtn" type="button" class="sort-toggle-btn" aria-haspopup="listbox" aria-expanded="false" title="Sort channels">
+              <svg class="sort-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M3 6h18M6 12h12m-9 6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span id="selectedSortLabel" class="sort-label-text">Default</span>
+              <svg class="sort-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            <!-- Sort Dropdown Menu -->
+            <div id="sortMenu" class="sort-menu-panel" role="listbox" aria-label="Sort options">
+              <button type="button" class="sort-item is-selected" data-sort="default" role="option">
+                <span>Default</span>
+                <span class="sort-badge">Order</span>
+              </button>
+              <button type="button" class="sort-item" data-sort="az" role="option">
+                <span>A → Z</span>
+                <span class="sort-badge">Name</span>
+              </button>
+              <button type="button" class="sort-item" data-sort="za" role="option">
+                <span>Z → A</span>
+                <span class="sort-badge">Name</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub Area: Channel Count Badge -->
+        <div class="sidebar-sub-area">
           <div id="channelMeta" class="channel-count-badge">Loading...</div>
         </div>
 

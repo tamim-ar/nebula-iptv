@@ -8,6 +8,7 @@
   // Constants & Storage Keys
   const DEFAULT_PLAYLIST = 'https://raw.githubusercontent.com/bugsfreeweb/LiveTVCollector/main/LiveTV/Bangladesh/LiveTV.json';
   const FAVORITES_STORAGE_KEY = 'nebula-favorite-channels';
+  const SORT_STORAGE_KEY = 'nebula-channel-sort';
   const FAVORITES_GROUP = 'favorites';
   const PREFERRED_GROUPS = ['News', 'Sports', 'Entertainment', 'Movies', 'Kids', 'Music', 'Religious', 'Documentary'];
   const PLAYER_IDLE_TIMEOUT = 2500;
@@ -42,6 +43,10 @@
   const categoryToggleBtn = document.getElementById('categoryToggleBtn');
   const selectedCategoryLabel = document.getElementById('selectedCategoryLabel');
   const categoryMenu = document.getElementById('categoryMenu');
+  const sortPicker = document.getElementById('sortPicker');
+  const sortToggleBtn = document.getElementById('sortToggleBtn');
+  const selectedSortLabel = document.getElementById('selectedSortLabel');
+  const sortMenu = document.getElementById('sortMenu');
 
   // Topbar DOM
   const reloadBtn = document.getElementById('reloadBtn');
@@ -52,12 +57,32 @@
   let hls = null;
   let activeQuery = '';
   let activeGroup = 'all';
+  let activeSort = loadSortPreference();
   let favoriteUrls = loadFavorites();
   let loadToken = 0;
   let renderToken = 0;
   let imageObserver = null;
   let idleTimer = null;
   let isChannelSwitching = false;
+
+  // ---------------------------------------------------------------------------
+  // Sort & Favorites Preference Persistence
+  // ---------------------------------------------------------------------------
+  function loadSortPreference() {
+    try {
+      const saved = localStorage.getItem(SORT_STORAGE_KEY);
+      if (saved === 'az' || saved === 'za' || saved === 'default') {
+        return saved;
+      }
+    } catch {}
+    return 'default';
+  }
+
+  function saveSortPreference(sort) {
+    try {
+      localStorage.setItem(SORT_STORAGE_KEY, sort);
+    } catch {}
+  }
 
   // ---------------------------------------------------------------------------
   // Favorites Management
@@ -278,11 +303,11 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Filtered Channels
+  // Filtered & Sorted Channels
   // ---------------------------------------------------------------------------
   function getFilteredChannels() {
     const query = activeQuery.toLowerCase().trim();
-    return channels.filter((channel) => {
+    const filtered = channels.filter((channel) => {
       const matchQuery = !query || `${channel.name} ${channel.group}`.toLowerCase().includes(query);
       const matchGroup =
         activeGroup === 'all'
@@ -292,6 +317,18 @@
           : channel.group === activeGroup;
       return matchQuery && matchGroup;
     });
+
+    if (activeSort === 'az') {
+      return filtered.slice().sort((a, b) =>
+        (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base', numeric: true })
+      );
+    }
+    if (activeSort === 'za') {
+      return filtered.slice().sort((a, b) =>
+        (b.name || '').localeCompare(a.name || '', undefined, { sensitivity: 'base', numeric: true })
+      );
+    }
+    return filtered; // Default original playlist order
   }
 
   // ---------------------------------------------------------------------------
@@ -347,6 +384,9 @@
     if (categoryToggleBtn) {
       categoryToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     }
+    if (isOpen) {
+      toggleSortDropdown(false);
+    }
   }
 
   function selectCategory(group) {
@@ -363,6 +403,49 @@
       });
     }
 
+    renderChannels();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sort Dropdown UI
+  // ---------------------------------------------------------------------------
+  function getSortLabel(sortKey) {
+    if (sortKey === 'az') return 'A → Z';
+    if (sortKey === 'za') return 'Z → A';
+    return 'Default';
+  }
+
+  function updateSortToggleLabel() {
+    if (selectedSortLabel) {
+      selectedSortLabel.textContent = getSortLabel(activeSort);
+    }
+    if (sortMenu) {
+      const items = sortMenu.querySelectorAll('.sort-item');
+      items.forEach((item) => {
+        const isSelected = item.dataset.sort === activeSort;
+        item.classList.toggle('is-selected', isSelected);
+        item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      });
+    }
+  }
+
+  function toggleSortDropdown(forceState) {
+    if (!sortPicker) return;
+    const isOpen = typeof forceState === 'boolean' ? forceState : !sortPicker.classList.contains('is-open');
+    sortPicker.classList.toggle('is-open', isOpen);
+    if (sortToggleBtn) {
+      sortToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+    if (isOpen) {
+      toggleCategoryDropdown(false);
+    }
+  }
+
+  function selectSort(sortKey) {
+    activeSort = sortKey;
+    saveSortPreference(sortKey);
+    updateSortToggleLabel();
+    toggleSortDropdown(false);
     renderChannels();
   }
 
@@ -878,9 +961,26 @@
       }
     });
 
+    // Sort Dropdown
+    sortToggleBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSortDropdown();
+    });
+
+    sortMenu?.addEventListener('click', (e) => {
+      const item = e.target.closest('.sort-item');
+      if (item && item.dataset.sort) {
+        selectSort(item.dataset.sort);
+      }
+    });
+
+    // Close Dropdowns on Click Outside
     document.addEventListener('click', (e) => {
       if (categoryPicker && !categoryPicker.contains(e.target)) {
         toggleCategoryDropdown(false);
+      }
+      if (sortPicker && !sortPicker.contains(e.target)) {
+        toggleSortDropdown(false);
       }
     });
 
@@ -895,6 +995,7 @@
 
       if (e.key === 'Escape') {
         toggleCategoryDropdown(false);
+        toggleSortDropdown(false);
       } else if (e.key === ' ' || e.key === 'k') {
         e.preventDefault();
         playToggleBtn?.click();
@@ -922,6 +1023,7 @@
   // App Initialization
   // ---------------------------------------------------------------------------
   function init() {
+    updateSortToggleLabel();
     attachEventListeners();
     loadPlaylist(DEFAULT_PLAYLIST);
   }
