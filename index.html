@@ -2,240 +2,572 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Nebula IPTV - Fast & Lightweight Live TV</title>
-    <meta name="description" content="Fast, lightweight, modern browser IPTV player with instant auto play and zero loading delay" />
-    <meta name="theme-color" content="#0a0d14" />
+    <meta name="description" content="Fast, ultra-lightweight, dark-themed live TV streaming web application designed as the web version of Nebula IPTV Android app." />
+    <meta name="theme-color" content="#0A0D14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M6 5.5c0-2.2 2.4-3.5 4.3-2.3l16.2 10.5c1.8 1.1 1.8 3.7 0 4.8L10.3 29C8.4 30.2 6 28.9 6 26.7V5.5Z' fill='%237C4DFF'/%3E%3Cpath d='M14.1 11.1 21.2 16l-7.1 4.9v-9.8Z' fill='%23ffffff'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- App Header -->
-    <header class="topbar">
-      <div class="topbar-brand">
-        <a class="brand-link" href="./" aria-label="Nebula IPTV Home">
-          <span class="brand-logo" aria-hidden="true">
+    <div id="app" class="nebula-app">
+      <!-- Left Sidebar Navigation Rail (Desktop & Tablet) -->
+      <nav class="nav-rail" aria-label="Main Navigation">
+        <div class="rail-brand">
+          <div class="rail-logo" aria-hidden="true">
             <svg viewBox="0 0 32 32" focusable="false">
               <path d="M6 5.5c0-2.2 2.4-3.5 4.3-2.3l16.2 10.5c1.8 1.1 1.8 3.7 0 4.8L10.3 29C8.4 30.2 6 28.9 6 26.7V5.5Z" fill="currentColor" />
-              <path d="M14.1 11.1 21.2 16l-7.1 4.9v-9.8Z" fill="#ffffff" />
+              <path d="M14.1 11.1 21.2 16l-7.1 4.9v-9.8Z" fill="#FFFFFF" />
             </svg>
-          </span>
-          <span class="brand-title">Nebula<span>IPTV</span></span>
-        </a>
-      </div>
-
-      <div class="topbar-center">
-        <div id="liveBadge" class="live-status-pill" title="Live Stream Active">
-          <span class="live-dot" aria-hidden="true"></span>
-          <span class="live-text">LIVE</span>
-          <span id="topbarChannel" class="topbar-channel-title"></span>
+          </div>
+          <div class="rail-title">Nebula<span>IPTV</span></div>
         </div>
-      </div>
 
-      <div class="topbar-actions">
-        <button id="reloadBtn" type="button" class="btn-icon" aria-label="Reload playlist" title="Reload Playlist">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M20 6v5h-5" />
-            <path d="M19 11a7 7 0 1 0-2.1 5" />
-          </svg>
-        </button>
-      </div>
-    </header>
-
-    <!-- Main App Container -->
-    <main class="app-shell">
-      <!-- Player Section -->
-      <section class="player-section" aria-label="IPTV Player">
-        <div id="playerShell" class="player-container">
-          <video id="player" playsinline preload="metadata"></video>
-
-          <!-- Center Play Button (Shown before first play or when paused) -->
-          <button id="centerPlayBtn" type="button" class="center-play-button" aria-label="Play stream" title="Click to play">
+        <div class="rail-links">
+          <button type="button" class="rail-item is-active" data-tab="all" aria-label="All Channels" title="All Channels">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M8 5v14l11-7-11-7Z" fill="currentColor" />
+              <rect x="3" y="3" width="7" height="7" rx="2" />
+              <rect x="14" y="3" width="7" height="7" rx="2" />
+              <rect x="14" y="14" width="7" height="7" rx="2" />
+              <rect x="3" y="14" width="7" height="7" rx="2" />
             </svg>
+            <span class="rail-label">All</span>
           </button>
 
-          <!-- Top-right Unmute banner (if browser blocked unmuted autoplay) -->
-          <button id="unmutePrompt" type="button" class="unmute-badge" aria-label="Unmute stream">
+          <button type="button" class="rail-item" data-tab="favorites" aria-label="Favorites" title="Favorites">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M4 9v6h4l5 4V5L8 9H4Z" />
-              <path d="m18 9-5 5" />
-              <path d="m13 9 5 5" />
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>Tap to unmute</span>
+            <span class="rail-label">Favorites</span>
+            <span id="railFavCount" class="rail-badge" hidden>0</span>
           </button>
 
-          <!-- Buffering Spinner -->
-          <div id="playerSpinner" class="player-spinner" aria-hidden="true">
-            <div class="spinner-ring"></div>
-          </div>
+          <button type="button" class="rail-item" data-tab="settings" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <span class="rail-label">Settings</span>
+          </button>
+        </div>
 
-          <!-- Stream Offline / Error Notice -->
-          <div id="playerError" class="player-error-card" hidden>
-            <div class="error-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            </div>
-            <p id="playerErrorText" class="error-msg">Stream is currently offline</p>
-            <button id="playerRetryBtn" type="button" class="btn-retry">Retry Channel</button>
-          </div>
+        <div class="rail-footer">
+          <div class="rail-status-dot" title="Nebula IPTV Live"></div>
+        </div>
+      </nav>
 
-          <!-- Channel Info Overlay (Fades out automatically) -->
-          <div id="playerCaption" class="player-caption">
-            <span id="currentChannelGroup" class="caption-category">Live TV</span>
-            <h1 id="currentChannel" class="caption-title">Select a channel</h1>
-          </div>
+      <!-- Main Dual-Pane Layout -->
+      <div class="app-main">
+        <!-- Dual Pane: Video Player Pane (Visible on All and Favorites) -->
+        <section id="playerPane" class="pane-player" aria-label="Live Video Player">
+          <div id="playerShell" class="video-container" tabindex="0">
+            <!-- Native Video Element -->
+            <video id="player" playsinline preload="metadata"></video>
 
-          <!-- Player Controls Bar -->
-          <div id="playerControls" class="player-controls">
-            <!-- Progress scrubber (for VOD/recorded feeds) -->
-            <div id="timelineContainer" class="timeline-bar" hidden>
-              <div id="progressFill" class="timeline-fill"></div>
-            </div>
-
-            <div class="controls-row">
-              <div class="controls-left">
-                <button id="playToggleBtn" type="button" class="ctrl-btn play-ctrl" aria-label="Pause" title="Play / Pause (Space)">
-                  <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M8 5v14l11-7-11-7Z" fill="currentColor" />
-                  </svg>
-                  <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M7 5h4v14H7V5Zm6 0h4v14h-4V5Z" fill="currentColor" />
-                  </svg>
-                </button>
-
-                <button id="muteToggleBtn" type="button" class="ctrl-btn mute-ctrl" aria-label="Mute" title="Mute / Unmute (M)">
-                  <svg class="icon-volume" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M4 9v6h4l5 4V5L8 9H4Z" />
-                    <path d="M16 9.5a4 4 0 0 1 0 5" />
-                    <path d="M18.5 7a7 7 0 0 1 0 10" />
-                  </svg>
-                  <svg class="icon-muted" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M4 9v6h4l5 4V5L8 9H4Z" />
-                    <path d="m18 9-5 5" />
-                    <path d="m13 9 5 5" />
-                  </svg>
-                </button>
-
-                <div id="timeDisplay" class="live-indicator-tag">LIVE</div>
-              </div>
-
-              <div class="controls-right">
-                <button id="pipBtn" type="button" class="ctrl-btn" aria-label="Picture in Picture" title="Picture in Picture">
+            <!-- Center Overlay: Main Playback Controls, Spinner, Offline/Retry Notice -->
+            <div id="centerOverlay" class="player-center-overlay">
+              <!-- Centered Main Playback Controls: Prev, Play/Pause, Next -->
+              <div id="mainControls" class="center-playback-controls">
+                <button id="prevBtn" type="button" class="playback-btn" aria-label="Previous Channel" title="Previous Channel (Left Arrow / P)">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <rect x="2" y="4" width="20" height="16" rx="2" />
-                    <rect x="12" y="11" width="8" height="7" rx="1" fill="currentColor" />
+                    <polygon points="19 20 9 12 19 4 19 20" fill="currentColor"/>
+                    <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                   </svg>
                 </button>
 
-                <button id="fullscreenBtn" type="button" class="ctrl-btn" aria-label="Toggle Fullscreen" title="Fullscreen (F)">
-                  <svg class="icon-fs-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M8 3H3v5" />
-                    <path d="M16 3h5v5" />
-                    <path d="M8 21H3v-5" />
-                    <path d="M16 21h5v-5" />
+                <button id="playPauseBtn" type="button" class="playback-btn play-main-btn" aria-label="Play or Pause" title="Play / Pause (Space / K)">
+                  <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/>
                   </svg>
-                  <svg class="icon-fs-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M4 8h5V3" />
-                    <path d="M20 8h-5V3" />
-                    <path d="M4 16h5v5" />
-                    <path d="M20 16h-5v5" />
+                  <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+                    <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+                    <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+                  </svg>
+                </button>
+
+                <button id="nextBtn" type="button" class="playback-btn" aria-label="Next Channel" title="Next Channel (Right Arrow / N)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"/>
+                    <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Centered Loading Spinner -->
+              <div id="playerSpinner" class="center-spinner" aria-hidden="true" hidden>
+                <div class="nebula-spinner-ring"></div>
+              </div>
+
+              <!-- Centered Clean Retry Message / Offline Notice -->
+              <div id="playerError" class="center-error-card" hidden>
+                <div class="error-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <p id="playerErrorText" class="error-text">Stream is currently offline</p>
+                <button id="playerRetryBtn" type="button" class="retry-btn">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <polyline points="23 20 23 14 17 14"/>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                  </svg>
+                  <span>Retry Channel</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Bottom Secondary Bar: Active Channel Title + Red LIVE Badge (Left), Mute & Fullscreen (Right) -->
+            <div id="bottomBar" class="player-bottom-bar">
+              <div class="bottom-bar-left">
+                <span class="live-badge" title="Live Broadcast">
+                  <span class="live-dot" aria-hidden="true"></span>
+                  <span class="live-text">LIVE</span>
+                </span>
+                <span id="playerChannelTitle" class="player-channel-title">Select a channel to play</span>
+              </div>
+
+              <div class="bottom-bar-right">
+                <button id="muteBtn" type="button" class="player-tool-btn" aria-label="Mute or Unmute" title="Mute / Unmute (M)">
+                  <svg class="icon-unmuted" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+                  </svg>
+                  <svg class="icon-muted" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+                    <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+
+                <button id="fullscreenBtn" type="button" class="player-tool-btn" aria-label="Toggle Fullscreen" title="Fullscreen (F)">
+                  <svg class="icon-fs-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                  <svg class="icon-fs-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+                    <path d="M4 14h6m0 0v6m0-6L3 21m17-7h-6m0 0v6m0-6l7 7M4 10h6m0 0V4m0 6L3 3m17 7h-6m0 0V4m0 6l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                   </svg>
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Channels Sidebar Section -->
-      <aside class="sidebar-section" aria-label="Channel Browser">
-        <!-- Search Field -->
-        <div class="sidebar-search-area">
-          <div class="search-input-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m21 21-4.3-4.3" />
+        <!-- Dual Pane: Content Pane (All, Favorites, or Settings) -->
+        <main class="pane-content" aria-label="App Content">
+          <!-- VIEW: ALL TAB -->
+          <div id="viewAll" class="tab-view is-active" role="tabpanel" aria-labelledby="tab-all">
+            <!-- Top Controls Container -->
+            <div class="view-header">
+              <!-- Compact Search Input -->
+              <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input id="searchInput" type="search" placeholder="Search channels or category..." autocomplete="off" spellcheck="false" aria-label="Search channels" />
+                <button id="clearSearchBtn" type="button" class="clear-search-btn" aria-label="Clear search text" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Sleek Single-Line Control Bar: Country Dropdown Trigger, Category Dropdown Trigger, Refresh Button -->
+              <div class="single-line-control-bar">
+                <!-- Country Dropdown Trigger -->
+                <button id="countryPickerBtn" type="button" class="ctrl-bar-trigger country-trigger" aria-haspopup="dialog" aria-expanded="false" title="Select Country / Region">
+                  <span id="countryFlagEmoji" class="country-emoji">🇧🇩</span>
+                  <span id="countryLabel" class="ctrl-bar-text">Bangladesh</span>
+                  <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </button>
+
+                <!-- Category Dropdown Trigger -->
+                <div class="category-dropdown-wrapper">
+                  <button id="categoryPickerBtn" type="button" class="ctrl-bar-trigger category-trigger" aria-haspopup="listbox" aria-expanded="false" title="Filter by Category">
+                    <svg class="cat-tv-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <rect x="2" y="7" width="20" height="15" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                      <polyline points="17 2 12 7 7 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    <span id="categoryLabel" class="ctrl-bar-text">All</span>
+                    <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                  </button>
+
+                  <!-- Category Dropdown Menu (No Favorites) -->
+                  <div id="categoryMenu" class="dropdown-popover" role="listbox" aria-label="Categories" hidden></div>
+                </div>
+
+                <!-- Refresh Icon Button with 360-degree spin animation -->
+                <button id="refreshFeedsBtn" type="button" class="refresh-feed-btn" aria-label="Reload and refresh feeds" title="Refresh Feeds">
+                  <svg class="refresh-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Channel Count Header -->
+              <div class="count-meta-row">
+                <span id="allChannelsCount" class="channels-count-badge">Loading channels...</span>
+              </div>
+            </div>
+
+            <!-- Scrollable Channel List (Compact Single-Column List) -->
+            <div class="channel-scroll-area">
+              <div id="allChannelsList" class="channel-list-column" role="list"></div>
+
+              <!-- Empty State for All Tab (No matches or all sources disabled) -->
+              <div id="allEmptyState" class="empty-state-card" hidden>
+                <div class="empty-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h3 id="allEmptyTitle" class="empty-title">No Channels Available</h3>
+                <p id="allEmptyDesc" class="empty-desc">All playlist sources are currently disabled in Settings.</p>
+                <button id="allEmptyActionBtn" type="button" class="btn-primary-action">Open Settings</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW: FAVORITES TAB -->
+          <div id="viewFavorites" class="tab-view" role="tabpanel" aria-labelledby="tab-favorites" hidden>
+            <div class="view-header">
+              <!-- Search Favorites -->
+              <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input id="favSearchInput" type="search" placeholder="Search favorite channels..." autocomplete="off" spellcheck="false" aria-label="Search favorites" />
+                <button id="clearFavSearchBtn" type="button" class="clear-search-btn" aria-label="Clear favorite search" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Channel Count Header -->
+              <div class="count-meta-row">
+                <span id="favChannelsCount" class="channels-count-badge">0 Favorites</span>
+              </div>
+            </div>
+
+            <!-- Scrollable Favorites List -->
+            <div class="channel-scroll-area">
+              <div id="favChannelsList" class="channel-list-column" role="list"></div>
+
+              <!-- Empty State for Favorites -->
+              <div id="favEmptyState" class="empty-state-card" hidden>
+                <div class="empty-icon gold" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>
+                  </svg>
+                </div>
+                <h3 class="empty-title">No Favorite Channels Yet</h3>
+                <p class="empty-desc">Tap the gold star icon on any channel in the All tab to save it here for instant cross-country access.</p>
+                <button id="browseAllBtn" type="button" class="btn-primary-action">Browse Channels</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW: SETTINGS TAB -->
+          <div id="viewSettings" class="tab-view settings-view" role="tabpanel" aria-labelledby="tab-settings" hidden>
+            <div class="settings-scroll-container">
+              <!-- Source Management Section -->
+              <section class="settings-section" aria-labelledby="sourceHeading">
+                <div class="section-title-bar">
+                  <div>
+                    <h2 id="sourceHeading" class="section-heading">Source Management</h2>
+                    <p class="section-subtext">Configure live stream playlist providers and custom feeds</p>
+                  </div>
+                  <div id="sourceMergeStatusBadge" class="source-status-badge">
+                    <span class="badge-dot"></span>
+                    <span id="sourceMergeStatusText">Sources Merged Active</span>
+                  </div>
+                </div>
+
+                <!-- Built-in Sources -->
+                <div class="settings-group">
+                  <div class="group-header">
+                    <h3 class="group-title">Built-in Sources</h3>
+                    <span class="group-note">Official IPTV providers enabled by default</span>
+                  </div>
+
+                  <!-- Provider Card 1: iptv-org -->
+                  <div class="source-card">
+                    <div class="source-info">
+                      <div class="source-header-row">
+                        <span class="source-name">iptv-org</span>
+                        <span class="badge-locked" title="Permanent built-in source">
+                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+                          </svg>
+                          Built-in
+                        </span>
+                      </div>
+                      <p class="source-desc">Global open-source community IPTV playlists across countries &amp; categories (M3U format).</p>
+                    </div>
+                    <div class="source-switch-area">
+                      <label class="toggle-switch">
+                        <input id="toggleIptvOrg" type="checkbox" checked aria-label="Toggle iptv-org source" />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Provider Card 2: LiveTVCollector -->
+                  <div class="source-card">
+                    <div class="source-info">
+                      <div class="source-header-row">
+                        <span class="source-name">LiveTVCollector</span>
+                        <span class="badge-locked" title="Permanent built-in source">
+                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+                          </svg>
+                          Built-in
+                        </span>
+                      </div>
+                      <p class="source-desc">Curated multi-region fast live TV feeds by bugsfreeweb (JSON format).</p>
+                    </div>
+                    <div class="source-switch-area">
+                      <label class="toggle-switch">
+                        <input id="toggleLiveTvCollector" type="checkbox" checked aria-label="Toggle LiveTVCollector source" />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Custom Sources -->
+                <div class="settings-group">
+                  <div class="group-header custom-group-header">
+                    <div>
+                      <h3 class="group-title">Custom Sources</h3>
+                      <span class="group-note">Add your own M3U, M3U8, or JSON stream playlists</span>
+                    </div>
+                    <button id="addSourceBtn" type="button" class="btn-add-source">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      <span>Add Source</span>
+                    </button>
+                  </div>
+
+                  <div id="customSourcesList" class="custom-sources-list"></div>
+
+                  <div id="noCustomSourcesNotice" class="no-custom-notice">
+                    <p>No custom playlist feeds added yet. Tap <strong>Add Source</strong> above to merge your personal M3U/JSON playlists.</p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Credits Section -->
+              <section class="settings-section credits-section" aria-labelledby="creditsHeading">
+                <div class="section-title-bar">
+                  <h2 id="creditsHeading" class="section-heading">Credits &amp; Acknowledgements</h2>
+                </div>
+
+                <!-- Built-in Feed Credits -->
+                <div class="credits-grid">
+                  <a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener noreferrer" class="credit-card-link">
+                    <div class="credit-card-icon">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
+                      </svg>
+                    </div>
+                    <div class="credit-card-info">
+                      <span class="credit-name">iptv-org</span>
+                      <span class="credit-desc">Community-driven live IPTV playlist repository</span>
+                      <span class="credit-url">github.com/iptv-org/iptv ↗</span>
+                    </div>
+                  </a>
+
+                  <a href="https://github.com/bugsfreeweb/LiveTVCollector" target="_blank" rel="noopener noreferrer" class="credit-card-link">
+                    <div class="credit-card-icon">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <rect x="2" y="7" width="20" height="15" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <polyline points="17 2 12 7 7 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                      </svg>
+                    </div>
+                    <div class="credit-card-info">
+                      <span class="credit-name">LiveTVCollector</span>
+                      <span class="credit-desc">Multi-region live streaming collector &amp; feeds</span>
+                      <span class="credit-url">github.com/bugsfreeweb/LiveTVCollector ↗</span>
+                    </div>
+                  </a>
+                </div>
+
+                <!-- Highlighted Developer Credit Card -->
+                <div class="developer-highlight-card">
+                  <div class="developer-glow-layer"></div>
+                  <div class="developer-content">
+                    <div class="dev-avatar">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z" fill="currentColor"/>
+                      </svg>
+                    </div>
+                    <div class="dev-details">
+                      <span class="dev-role">Developer &amp; Maintainer</span>
+                      <h3 class="dev-name">Tamim Ahasan Rijon</h3>
+                      <p class="dev-bio">Designed &amp; crafted Nebula IPTV as a high-performance web live streaming platform.</p>
+                      <a href="https://github.com/tamim-ar" target="_blank" rel="noopener noreferrer" class="dev-link-btn">
+                        <span>Visit GitHub Profile</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <line x1="7" y1="17" x2="17" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <polyline points="7 7 17 7 17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Mobile Bottom Navigation Bar (All, Favorites, Settings) -->
+      <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
+        <button type="button" class="mobile-nav-btn is-active" data-tab="all" aria-label="All Channels">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="3" width="7" height="7" rx="2" />
+            <rect x="14" y="3" width="7" height="7" rx="2" />
+            <rect x="14" y="14" width="7" height="7" rx="2" />
+            <rect x="3" y="14" width="7" height="7" rx="2" />
+          </svg>
+          <span>All</span>
+        </button>
+
+        <button type="button" class="mobile-nav-btn" data-tab="favorites" aria-label="Favorites">
+          <div class="badge-icon-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <input id="searchInput" type="search" placeholder="Search channels..." autocomplete="off" spellcheck="false" />
-            <button id="clearSearchBtn" type="button" class="btn-clear-search" aria-label="Clear search" hidden>
+            <span id="mobileFavCount" class="mobile-badge" hidden>0</span>
+          </div>
+          <span>Favorites</span>
+        </button>
+
+        <button type="button" class="mobile-nav-btn" data-tab="settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <!-- Country Picker Modal (Searchable, Bangladesh Pinned at Top, A-Z Sorted) -->
+      <div id="countryModal" class="nebula-modal-backdrop" hidden>
+        <div class="nebula-modal" role="dialog" aria-modal="true" aria-labelledby="countryModalTitle">
+          <div class="modal-header">
+            <div class="modal-title-wrap">
+              <h3 id="countryModalTitle" class="modal-title">Select Region / Country</h3>
+              <span id="countryModalSubtitle" class="modal-subtext">38 Regions Supported</span>
+            </div>
+            <button id="closeCountryModalBtn" type="button" class="modal-close-btn" aria-label="Close modal">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
             </button>
           </div>
-        </div>
 
-        <!-- Filter Row: Category & Sort Dropdowns -->
-        <div class="sidebar-filter-area">
-          <div id="categoryPicker" class="category-dropdown-container">
-            <button id="categoryToggleBtn" type="button" class="category-toggle-btn" aria-haspopup="listbox" aria-expanded="false" title="Filter by category">
-              <svg class="cat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <rect x="2" y="7" width="20" height="15" rx="2" />
-                <polyline points="17 2 12 7 7 2" />
-              </svg>
-              <span id="selectedCategoryLabel" class="cat-label-text">All channels</span>
-              <svg class="cat-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-
-            <!-- Category Dropdown Menu -->
-            <div id="categoryMenu" class="category-menu-panel" role="listbox" aria-label="Categories"></div>
+          <div class="modal-search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input id="countrySearchInput" type="search" placeholder="Search countries or regions..." autocomplete="off" spellcheck="false" aria-label="Search countries" />
           </div>
 
-          <!-- Sort Dropdown -->
-          <div id="sortPicker" class="sort-dropdown-container">
-            <button id="sortToggleBtn" type="button" class="sort-toggle-btn" aria-haspopup="listbox" aria-expanded="false" title="Sort channels">
-              <svg class="sort-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M3 6h18M6 12h12m-9 6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              </svg>
-              <span id="selectedSortLabel" class="sort-label-text">Default</span>
-              <svg class="sort-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
+          <div class="modal-body">
+            <!-- Pinned Section: Bangladesh -->
+            <div id="pinnedCountrySection" class="country-section">
+              <div class="section-label">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+                </svg>
+                <span>Pinned Region</span>
+              </div>
+              <div id="pinnedCountryList" class="country-items-wrap"></div>
+            </div>
 
-            <!-- Sort Dropdown Menu -->
-            <div id="sortMenu" class="sort-menu-panel" role="listbox" aria-label="Sort options">
-              <button type="button" class="sort-item is-selected" data-sort="default" role="option">
-                <span>Default</span>
-                <span class="sort-badge">Order</span>
-              </button>
-              <button type="button" class="sort-item" data-sort="az" role="option">
-                <span>A → Z</span>
-                <span class="sort-badge">Name</span>
-              </button>
-              <button type="button" class="sort-item" data-sort="za" role="option">
-                <span>Z → A</span>
-                <span class="sort-badge">Name</span>
-              </button>
+            <!-- Alphabetical Regions Section -->
+            <div class="country-section">
+              <div class="section-label">
+                <span>All Supported Regions (A &rarr; Z)</span>
+              </div>
+              <div id="alphaCountryList" class="country-items-wrap"></div>
+            </div>
+
+            <div id="noCountriesFound" class="modal-empty-notice" hidden>
+              <p>No matching regions found.</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Sub Area: Channel Count Badge -->
-        <div class="sidebar-sub-area">
-          <div id="channelMeta" class="channel-count-badge">Loading...</div>
+      <!-- Add Custom Source Modal -->
+      <div id="addSourceModal" class="nebula-modal-backdrop" hidden>
+        <div class="nebula-modal" role="dialog" aria-modal="true" aria-labelledby="addSourceTitle">
+          <div class="modal-header">
+            <h3 id="addSourceTitle" class="modal-title">Add Custom Playlist Feed</h3>
+            <button id="closeAddSourceModalBtn" type="button" class="modal-close-btn" aria-label="Close modal">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <form id="addSourceForm" class="modal-form" novalidate>
+            <div class="form-field">
+              <label for="customSourceName" class="field-label">Source Name <span class="req">*</span></label>
+              <input id="customSourceName" type="text" class="form-input" placeholder="e.g. My Sports Feed" required autocomplete="off" />
+            </div>
+
+            <div class="form-field">
+              <label for="customSourceUrl" class="field-label">Playlist Stream URL <span class="req">*</span></label>
+              <input id="customSourceUrl" type="url" class="form-input" placeholder="https://example.com/playlist.m3u8 or .json" required autocomplete="off" spellcheck="false" />
+              <span class="field-help">Valid HTTP or HTTPS playlist URL (M3U, M3U8, or JSON format)</span>
+            </div>
+
+            <div class="form-field">
+              <label for="customSourceScope" class="field-label">Country Scope</label>
+              <select id="customSourceScope" class="form-select">
+                <option value="all">All Countries (Merge)</option>
+              </select>
+              <span class="field-help">Merge into all countries or bind to a specific region</span>
+            </div>
+
+            <div id="addSourceError" class="form-error" hidden></div>
+
+            <div class="modal-actions">
+              <button id="cancelAddSourceBtn" type="button" class="btn-secondary-action">Cancel</button>
+              <button id="submitAddSourceBtn" type="submit" class="btn-primary-action">Save Source</button>
+            </div>
+          </form>
         </div>
+      </div>
+    </div>
 
-        <!-- Scrollable Channel List -->
-        <div class="channel-list-container">
-          <div id="channelList" class="channel-list-grid" role="list" aria-live="polite"></div>
-        </div>
-
-        <!-- Footer / Credits -->
-        <footer class="sidebar-footer">
-          <span>TV streams powered by <a href="https://github.com/bugsfreeweb/LiveTVCollector" target="_blank" rel="noopener noreferrer" class="credit-link">bugsfreeweb/LiveTVCollector</a></span>
-        </footer>
-      </aside>
-    </main>
-
-    <!-- HLS.js for instant, lightweight stream handling -->
+    <!-- HLS.js for cross-browser M3U8 live stream playback -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <script src="app.js"></script>
   </body>
